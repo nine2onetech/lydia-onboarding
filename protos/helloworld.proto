@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+option go_package = "protogen/";
+
+service HelloWorld {
+  // Say Hello to World! The World will respond
+  rpc SayHello(Greetings) returns (BackAtYou) {}
+  // Say Hello to World! The World will respond but slowly..
+  rpc SayHelloStream(Greetings) returns (stream BackAtYou) {}
+}
+
+message Greetings {
+  string name = 1;
+  string body = 2;
+}
+
+message BackAtYou {
+  string response = 1;
+}
