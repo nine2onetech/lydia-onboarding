@@ -28,6 +28,10 @@ run-go:
 
 run-python:
 	cd $(PYTHON_ROOT) && \
-	uv run hello.py
+	uv run main.py
+
+grpc-client-test:
+	cd $(PYTHON_ROOT) && \
+	uv run grpc_test.py
 
 run: run-go run-python
