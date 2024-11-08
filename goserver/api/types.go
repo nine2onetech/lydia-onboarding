@@ -35,7 +35,7 @@ type GetBikeStnApiResponse struct {
 type StationStatus struct {
 	StationName string `json:"stationName"`
 	BikeCnt     string `json:"parkingBikeTotCnt"`
-	StationId   string `json:"stationId"`
+	StationID   string `json:"stationId"`
 }
 
 type RentBikeStatus struct {

@@ -43,5 +43,5 @@ class StationStatus(_message.Message):
     PARKED_BIKE_CNT_FIELD_NUMBER: _ClassVar[int]
     stn_id: str
     stn_name: str
-    parked_bike_cnt: str
-    def __init__(self, stn_id: _Optional[str] = ..., stn_name: _Optional[str] = ..., parked_bike_cnt: _Optional[str] = ...) -> None: ...
+    parked_bike_cnt: int
+    def __init__(self, stn_id: _Optional[str] = ..., stn_name: _Optional[str] = ..., parked_bike_cnt: _Optional[int] = ...) -> None: ...

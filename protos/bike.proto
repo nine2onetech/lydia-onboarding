@@ -30,5 +30,5 @@ message StationList {
 message StationStatus {
   string stn_id = 1;
   string stn_name = 2;
-  string parked_bike_cnt = 3;
+  int32 parked_bike_cnt = 3;
 }

@@ -36,7 +36,8 @@ func StationsToStationPbList(stations []Station) []*bpb.Station {
 // StationStatus -> StationStatus(pb)
 
 func StationStatusToStationStatusPb(ss StationStatus) *bpb.StationStatus {
+	parked_bike_count, _ := strconv.Atoi(ss.BikeCnt)
 	return &bpb.StationStatus{
-		StnId: ss.StationId, StnName: ss.StationName, ParkedBikeCnt: ss.BikeCnt,
+		StnId: ss.StationID, StnName: ss.StationName, ParkedBikeCnt: int32(parked_bike_count),
 	}
 }
