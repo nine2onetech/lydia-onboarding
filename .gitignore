@@ -3,3 +3,4 @@ goserver/secrets
 .venv
 .DS_Store
 .ruff_cache
+__pycache__
