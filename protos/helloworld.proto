@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-option go_package = "protogen/";
+option go_package = "protogen/helloworld";
 
 service HelloWorld {
   // Say Hello to World! The World will respond
@@ -10,10 +10,10 @@ service HelloWorld {
 }
 
 message Greetings {
-  string name = 1;
-  string body = 2;
+  optional string name = 1;
+  optional string body = 2;
 }
 
 message BackAtYou {
-  string response = 1;
+  optional string response = 1;
 }

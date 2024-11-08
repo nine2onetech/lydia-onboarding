@@ -24,18 +24,18 @@ _sym_db = _symbol_database.Default()
 
 
 
-DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10helloworld.proto\"\'\n\tGreetings\x12\x0c\n\x04name\x18\x01 \x01(\t\x12\x0c\n\x04\x62ody\x18\x02 \x01(\t\"\x1d\n\tBackAtYou\x12\x10\n\x08response\x18\x01 \x01(\t2`\n\nHelloWorld\x12$\n\x08SayHello\x12\n.Greetings\x1a\n.BackAtYou\"\x00\x12,\n\x0eSayHelloStream\x12\n.Greetings\x1a\n.BackAtYou\"\x00\x30\x01\x42\x0bZ\tprotogen/b\x06proto3')
+DESCRIPTOR = _descriptor_pool.Default().AddSerializedFile(b'\n\x10helloworld.proto\"C\n\tGreetings\x12\x11\n\x04name\x18\x01 \x01(\tH\x00\x88\x01\x01\x12\x11\n\x04\x62ody\x18\x02 \x01(\tH\x01\x88\x01\x01\x42\x07\n\x05_nameB\x07\n\x05_body\"/\n\tBackAtYou\x12\x15\n\x08response\x18\x01 \x01(\tH\x00\x88\x01\x01\x42\x0b\n\t_response2`\n\nHelloWorld\x12$\n\x08SayHello\x12\n.Greetings\x1a\n.BackAtYou\"\x00\x12,\n\x0eSayHelloStream\x12\n.Greetings\x1a\n.BackAtYou\"\x00\x30\x01\x42\x15Z\x13protogen/helloworldb\x06proto3')
 
 _globals = globals()
 _builder.BuildMessageAndEnumDescriptors(DESCRIPTOR, _globals)
 _builder.BuildTopDescriptorsAndMessages(DESCRIPTOR, 'helloworld_pb2', _globals)
 if not _descriptor._USE_C_DESCRIPTORS:
   _globals['DESCRIPTOR']._loaded_options = None
-  _globals['DESCRIPTOR']._serialized_options = b'Z\tprotogen/'
+  _globals['DESCRIPTOR']._serialized_options = b'Z\023protogen/helloworld'
   _globals['_GREETINGS']._serialized_start=20
-  _globals['_GREETINGS']._serialized_end=59
-  _globals['_BACKATYOU']._serialized_start=61
-  _globals['_BACKATYOU']._serialized_end=90
-  _globals['_HELLOWORLD']._serialized_start=92
-  _globals['_HELLOWORLD']._serialized_end=188
+  _globals['_GREETINGS']._serialized_end=87
+  _globals['_BACKATYOU']._serialized_start=89
+  _globals['_BACKATYOU']._serialized_end=136
+  _globals['_HELLOWORLD']._serialized_start=138
+  _globals['_HELLOWORLD']._serialized_end=234
 # @@protoc_insertion_point(module_scope)

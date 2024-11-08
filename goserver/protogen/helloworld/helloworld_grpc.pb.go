@@ -4,7 +4,7 @@
 // - protoc             v5.28.3
 // source: helloworld.proto
 
-package protogen
+package helloworld
 
 import (
 	context "context"
