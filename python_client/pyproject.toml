@@ -9,10 +9,10 @@ dependencies = [
     "grpcio-tools>=1.67.1",
     "ruff>=0.7.2",
     "protobuf>=5.28.3",
-    "aiohttp>=3.10.10",
     "socketio>=0.2.1",
     "python-socketio>=5.11.4",
     "redis>=5.2.0",
+    "gunicorn>=23.0.0",
 ]
 
 [dependency-groups]
