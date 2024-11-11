@@ -1,0 +1,26 @@
+.container {
+  display: flex;
+  width: 100vw;
+  height: 100vh;
+}
+
+.left-pane, .right-pane {
+  flex: 1;
+  padding: 20px;
+  height: calc(100vh - 40px);
+}
+
+.left-pane {
+  background-color: #f0f0f0;
+}
+
+.right-pane {
+  background-color: #ffffff;
+}
+
+.card-container {
+  display: flex;
+  flex-direction: column;
+  height: 85%;
+  overflow-y: scroll;
+}
