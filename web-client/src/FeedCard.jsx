@@ -1,8 +1,7 @@
 import React from 'react';
 import './Card.css';
 
-function FeedCard({ type, message }) {
-  const timestamp = new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' });
+function FeedCard({ type, message, timestamp }) {
   return (
     <div className="card">
       <p>{message} {type === 'bike_return' ? '⬆️' : '⬇️'}</p>

@@ -44,21 +44,19 @@ function App() {
     });
 
     socket.on('bike_return', (message) => {
-      const newFeed = {type: 'bike_return', message: message}
-      setFeed((prevFeed) => [newFeed, ...prevFeed]);
+      message.type = 'bike_return';
+      setFeed((prevFeed) => [message, ...prevFeed]);
     });
 
     socket.on('bike_rent', (message) => {
-      const newFeed = {type: 'bike_rent', message: message}
-      setFeed((prevFeed) => [newFeed, ...prevFeed]);
+      message.type = 'bike_return';
+      setFeed((prevFeed) => [message, ...prevFeed]);
     })
 
     socket.emit('stn_list', {});
 
     return () => {
-      socket.off('stn_list');
-      socket.off('bike_return');
-      socket.off('bike_rent');
+      socket.disconnect()
     };
   }, []);
 

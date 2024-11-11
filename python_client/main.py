@@ -2,6 +2,7 @@ import asyncio
 import logging
 import json
 import threading
+from datetime import datetime
 
 import grpc
 from redis.asyncio import Redis
@@ -79,6 +80,7 @@ async def fetch_and_notify_bike_rent_status():
                 try:
                     response_stream = stub.GetRealTimeStationStatus(empty_pb2.Empty())
                     for response in response_stream:
+                        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                         key = response.stn_name
                         value = response.parked_bike_cnt
 
@@ -95,11 +97,15 @@ async def fetch_and_notify_bike_rent_status():
                             elif prv_int > value:
                                 msg = f"{key} 대여소의 자전거가 {prv_int - value} 대 빠졌습니다."
                                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
-                                await sio.start_background_task(sio.emit, "bike_rent", msg)
+                                await sio.start_background_task(
+                                    sio.emit, "bike_rent", dict(message=msg, timestamp=timestamp)
+                                )
                             else:
                                 msg = f"{key} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다."
                                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
-                                await sio.start_background_task(sio.emit, "bike_return", msg)
+                                await sio.start_background_task(
+                                    sio.emit, "bike_return", dict(message=msg, timestamp=timestamp)
+                                )
 
                     # 1분 대기 후 다시 요청
                     await asyncio.sleep(REQUEST_INTERVAL)
