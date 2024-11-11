@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 
 
 # Socket.IO 서버 생성
-sio = socketio.AsyncServer(async_mode="aiohttp", logger=False, engineio_logger=False)
+sio = socketio.AsyncServer(async_mode="aiohttp", logger=False, engineio_logger=False, cors_allowed_origins="*")
 
 
 def get_redis_client() -> Redis:
@@ -93,17 +93,13 @@ async def fetch_and_notify_bike_rent_status():
                             if prv_int == value:
                                 pass
                             elif prv_int > value:
-                                logger.info(f"{key} 대여소의 자전거가 {prv_int - value} 대 빠졌습니다.")
+                                msg = f"{key} 대여소의 자전거가 {prv_int - value} 대 빠졌습니다."
                                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
-                                await sio.start_background_task(
-                                    sio.emit, "bike_rent", MessageToDict(response)
-                                )  # 웹 클라이언트에 알림 전송
+                                await sio.start_background_task(sio.emit, "bike_rent", msg)
                             else:
-                                logger.info(f"{key} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다.")
+                                msg = f"{key} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다."
                                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
-                                await sio.start_background_task(
-                                    sio.emit, "bike_return", MessageToDict(response)
-                                )  # 웹 클라이언트에 알림 전송
+                                await sio.start_background_task(sio.emit, "bike_return", msg)
 
                     # 1분 대기 후 다시 요청
                     await asyncio.sleep(REQUEST_INTERVAL)
