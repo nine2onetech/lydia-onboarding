@@ -27,3 +27,7 @@ make run-go
 ```bash
 make run-python
 ```
+**web 클라이언트 실행**
+```bash
+make run-web
+```

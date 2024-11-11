@@ -1,6 +1,7 @@
 PROTO_DIR=protos
 GO_ROOT=goserver
 PYTHON_ROOT=python_client
+WEB_ROOT=web-client
 GO_OUT=protogen
 PY_OUT=protogen
 PROTO_FILE ?= service.proto
@@ -34,4 +35,6 @@ grpc-client-test:
 	cd $(PYTHON_ROOT) && \
 	uv run grpc_test.py
 
-run: run-go run-python
+run-web:
+	cd $(WEB_ROOT) && \
+	yarn dev --port 9898
