@@ -16,7 +16,7 @@ func StationToStationPb(s Station) *bpb.Station {
 		StnGrpName: s.STALOC,
 		StnId:      s.RENTID,
 		StnNum:     s.RENTNO,
-		StnName:    s.RENTNO,
+		StnName:    s.RENTNM,
 		StnAddr_1:  s.STAADD1,
 		StnAddr_2:  s.STAADD2,
 		StnLat:     float32(lat),
