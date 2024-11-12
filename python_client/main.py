@@ -70,8 +70,17 @@ async def stn_list(sid, data):
         with grpc.insecure_channel(GRPC_SERVER_HOST) as channel:
             # Bike Service
             bike_stub = bike_pb2_grpc.BikeStub(channel)
+            # 대여소 현황을 미리 가져와, parkedBikeCnt 를 추가할 수 있도록 함
+            await __get_real_time_station_status(bike_stub, socketio_emit=False)
             res: bike_pb2.StationList = bike_stub.GetStationList(empty_pb2.Empty())
-        data = [MessageToDict(station) for station in res.stations]
+
+        data = []
+        for station in res.stations:
+            d = MessageToDict(station)
+            if await r.exists(station.stn_id):
+                d["parkedBikeCnt"] = await r.get(station.stn_id)
+            data.append(d)
+
         # redis 에 캐시 저장
         encoded = json.dumps(data, ensure_ascii=False).encode("utf-8")
         await r.set(key, encoded)
@@ -96,7 +105,7 @@ async def __get_real_time_station_status(stub, socketio_emit: bool = True):
     r = get_redis_client()
     for response in response_stream:
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        key = response.stn_name
+        key = response.stn_id
         value = response.parked_bike_cnt
 
         # Redis에서 이전 값 가져오기 + 없으면 설정하기
@@ -113,12 +122,20 @@ async def __get_real_time_station_status(stub, socketio_emit: bool = True):
                 msg = f"{key} 대여소의 자전거가 {prv_int - value} 대 빠졌습니다."
                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
                 if socketio_emit:
-                    await sio.start_background_task(sio.emit, "bike_rent", dict(message=msg, timestamp=timestamp))
+                    await sio.start_background_task(
+                        sio.emit,
+                        "bike_rent",
+                        dict(message=msg, timestamp=timestamp, parked_bike_cnt=value, stn_id=response.stn_id),
+                    )
             else:
                 msg = f"{key} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다."
                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
                 if socketio_emit:
-                    await sio.start_background_task(sio.emit, "bike_return", dict(message=msg, timestamp=timestamp))
+                    await sio.start_background_task(
+                        sio.emit,
+                        "bike_return",
+                        dict(message=msg, timestamp=timestamp, parked_bike_cnt=value, stn_id=response.stn_id),
+                    )
 
 
 async def fetch_and_notify_bike_rent_status():

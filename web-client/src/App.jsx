@@ -47,7 +47,6 @@ function App() {
   useEffect(() => {
     socket.on('stn_list', (message) => {
       setStations(JSON.parse(message));
-      console.log("SET STATION")
     });
 
     socket.on('bike_return', (message) => {
@@ -56,6 +55,11 @@ function App() {
       }
       message.type = 'bike_return';
       setFeed((prevFeed) => [message, ...prevFeed]);
+      setStations((prevStations) =>
+        prevStations.map(station =>
+          station.stnId === message.stn_id ? { ...station, parkedBikeCnt: message.parked_bike_cnt } : station
+        )
+      );
     });
 
     socket.on('bike_rent', (message) => {
@@ -64,9 +68,16 @@ function App() {
       }
       message.type = 'bike_return';
       setFeed((prevFeed) => [message, ...prevFeed]);
+
+      setStations((prevStations) =>
+        prevStations.map(station =>
+          station.stnId === message.stn_id ? { ...station, parkedBikeCnt: message.parked_bike_cnt } : station
+        )
+      );
     })
 
     socket.emit('stn_list', {});
+    // socket.emit('feed', {});
 
     return () => {
       socket.off('stn_list');
@@ -81,7 +92,7 @@ function App() {
         <h2>List</h2>
         <input className="search" placeholder={'대여소 이름으로 검색하기'} onKeyPress={handleKeyPress} ref={inputRef} onChange={handleSearchQChange}/>
         <div className="card-container">
-          {matches.length === 0 ? stations.map(station => (StationCard({ station }))) : matches.map(station => (StationCard({ station })))}
+          {matches.length === 0 ? stations.map(station => <StationCard key={station.stnId} station={station} />) : matches.map(station => <StationCard key={station.stnId} station={station} />)}
         </div>
       </div>
       <div className="right-pane">
