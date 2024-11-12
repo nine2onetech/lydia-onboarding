@@ -88,7 +88,7 @@ async def stn_list(sid, data):
     else:
         # redis 에 이미 캐시가 있으면 캐시에서 응답
         logger.debug("Cache hit")
-        data = await r.get(key)
+        data = json.loads(await r.get(key))
     await sio.emit("stn_list", data)
 
 
@@ -107,6 +107,7 @@ async def __get_real_time_station_status(stub, socketio_emit: bool = True):
         timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         key = response.stn_id
         value = response.parked_bike_cnt
+        stn_name = response.stn_name
 
         # Redis에서 이전 값 가져오기 + 없으면 설정하기
         previous_value = await r.getset(key, value)
@@ -128,7 +129,7 @@ async def __get_real_time_station_status(stub, socketio_emit: bool = True):
                         dict(message=msg, timestamp=timestamp, parked_bike_cnt=value, stn_id=response.stn_id),
                     )
             else:
-                msg = f"{key} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다."
+                msg = f"{stn_name} 대여소에 자전거가 {value - prv_int} 대 들어왔습니다."
                 logger.debug(f"[REDIS] {key}: {prv_int} -> {value}")
                 if socketio_emit:
                     await sio.start_background_task(
@@ -166,4 +167,4 @@ if __name__ == "__main__":
     # aiohttp 웹 서버 실행
     app = web.Application(logger=logger)
     sio.attach(app)
-    web.run_app(app)
+    web.run_app(app, handle_signals=True, shutdown_timeout=5)

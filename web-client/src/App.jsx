@@ -46,7 +46,7 @@ function App() {
 
   useEffect(() => {
     socket.on('stn_list', (message) => {
-      setStations(JSON.parse(message));
+      setStations(message);
     });
 
     socket.on('bike_return', (message) => {
@@ -77,7 +77,7 @@ function App() {
     })
 
     socket.emit('stn_list', {});
-    // socket.emit('feed', {});
+    socket.emit('feed', {});
 
     return () => {
       socket.off('stn_list');
