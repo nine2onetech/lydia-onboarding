@@ -9,7 +9,8 @@ function App() {
   const [matches, setMatches] = useState([])
   const inputRef = useRef();
   const [feed, setFeed] = useState([]);
-  const [stations, setStations] = useState([{name: '서울역', address: '서울역 주소'}, {name: '용산역', address: '용산역 주소'}]);
+  const [stations, setStations] = useState([]);
+  const [isLoading, setIsLoading] = useState(false);
 
 
   const searchByName = () => {
@@ -30,6 +31,12 @@ function App() {
     setSearchQ(e.target.value);
   }
 
+  const refreshFeed = () => {
+    socket.emit('feed', {});
+    setIsLoading(true);
+
+  }
+
   useEffect(() => {
     if (searchQ === '') {
       setMatches([]);
@@ -44,11 +51,17 @@ function App() {
     });
 
     socket.on('bike_return', (message) => {
+      if (isLoading === true) {
+        setIsLoading(false);
+      }
       message.type = 'bike_return';
       setFeed((prevFeed) => [message, ...prevFeed]);
     });
 
     socket.on('bike_rent', (message) => {
+      if (isLoading === true) {
+        setIsLoading(false);
+      }
       message.type = 'bike_return';
       setFeed((prevFeed) => [message, ...prevFeed]);
     })
@@ -56,9 +69,11 @@ function App() {
     socket.emit('stn_list', {});
 
     return () => {
-      socket.disconnect()
+      socket.off('stn_list');
+      socket.off('bike_return');
+      socket.off('bike_rent');
     };
-  }, []);
+  }, [isLoading]);
 
   return (
     <div className="container">
@@ -71,6 +86,8 @@ function App() {
       </div>
       <div className="right-pane">
         <h2>Feed</h2>
+        <button onClick={refreshFeed}>즉시 새로고침</button>
+        {isLoading === true && <p>새로고침 중...</p>}
         <div className="card-container">
           {feed.length !== 0 ? feed.map(f => (FeedCard(f))) : '피드가 없습니다.'}
         </div>
