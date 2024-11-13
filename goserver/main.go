@@ -22,19 +22,27 @@ type helloWorldServer struct {
 
 func (s *helloWorldServer) SayHello(_ context.Context, req *hwpb.Greetings) (*hwpb.BackAtYou, error) {
 	// context.Context는 gRPC 메서드에서 요청의 생명 주기를 관리하고 제어함
-	fmt.Println("Received:", req.GetBody())
-	fmt.Println("From:", req.GetName())
+	log.Println("Received:", req.GetBody())
+	log.Println("From:", req.GetName())
 	response := fmt.Sprintf("Hello %s!", req.GetName())
 	return &hwpb.BackAtYou{Response: response}, nil
 }
 
 func (s *helloWorldServer) SayHelloStream(req *hwpb.Greetings, stream hwpb.HelloWorld_SayHelloStreamServer) error {
-	fmt.Println("Received:", req.GetBody())
-	fmt.Println("From:", req.GetName())
+	log.Println("Received:", req.GetBody())
+	log.Println("From:", req.GetName())
+	log.Println("Sending response...")
 	response := fmt.Sprintf("Hello %s!", req.GetName())
+	ctx := stream.Context()
 	for _, char := range response {
-		if err := stream.Send(&hwpb.BackAtYou{Response: string(char)}); err != nil {
-			return err
+		select {
+		case <-ctx.Done(): // Handle context cancellation
+			log.Print("context cancelled")
+			return fmt.Errorf("context cancelled: %w", ctx.Err())
+		default:
+			if err := stream.Send(&hwpb.BackAtYou{Response: string(char)}); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
@@ -54,7 +62,6 @@ func (s *bikeServer) GetStationList(_ context.Context, _ *emptypb.Empty) (*bpb.S
 func (s *bikeServer) GetRealTimeStationStatus(_ *emptypb.Empty, stream bpb.Bike_GetRealTimeStationStatusServer) error {
 	statuses, err := api.GetBikeStnStatus()
 	if err != nil {
-		log.Println("Error:", err)
 		return err
 	}
 	for _, status := range statuses {

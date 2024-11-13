@@ -9,32 +9,34 @@ import (
 	"strconv"
 )
 
-var key string = "736c567a516c696e3131355475534258"
-var limit int = 1000
+var key = "736c567a516c696e3131355475534258"
+var limit = 1000
 
 // 구조체 타입을 담아야하므로 빈 interface 사용
-func parseApiResponse(resp *http.Response, respType interface{}) {
+func parseApiResponse(resp *http.Response, respType interface{}) error {
 	// 함수 종료 시, 네트워크 연결 끊음
 	defer resp.Body.Close()
 
 	body, readErr := io.ReadAll(resp.Body)
 	if readErr != nil {
-		fmt.Println("Error getting bikeStns:", readErr)
-		panic(readErr)
+		return fmt.Errorf("error reading api response : %w", readErr)
 	}
 	json.Unmarshal(body, respType)
+	return nil
 }
 
 func GetBikeStns() (int, []Station, error) {
-	baseUrl := "http://openapi.seoul.go.kr:8088/%s/json/tbCycleStationInfo"
-	url := fmt.Sprintf(baseUrl, key) + fmt.Sprintf("/1/%d", limit)
+	baseURL := "http://openapi.seoul.go.kr:8088/%s/json/tbCycleStationInfo"
+	url := fmt.Sprintf(baseURL, key) + fmt.Sprintf("/1/%d", limit)
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Error getting bikeStns:", err)
-		return 0, []Station{}, err
+		return 0, []Station{}, fmt.Errorf("cannot get station list: %w", err)
 	}
 	var apiResponse GetBikeStnApiResponse
-	parseApiResponse(resp, &apiResponse)
+	parseErr := parseApiResponse(resp, &apiResponse)
+	if parseErr != nil {
+		return 0, []Station{}, parseErr
+	}
 
 	totalStations := apiResponse.StationInfo.Row
 	count, _ := strconv.Atoi(apiResponse.StationInfo.ListTotalCount)
@@ -43,15 +45,17 @@ func GetBikeStns() (int, []Station, error) {
 		cursor := limit + 1
 		loopsToRun := math.Ceil(float64(count-limit) / float64(limit))
 		for i := 0; i < int(loopsToRun); i++ {
-			url := fmt.Sprintf(baseUrl, key) + fmt.Sprintf("/%d/%d", cursor, cursor+limit-1)
+			url := fmt.Sprintf(baseURL, key) + fmt.Sprintf("/%d/%d", cursor, cursor+limit-1)
 			resp, err := http.Get(url)
 			if err != nil {
-				fmt.Println("Error getting bikeStns:", err)
-				panic(err)
+				return 0, []Station{}, fmt.Errorf("cannot get station list: %w", err)
 			}
-			cursor = cursor + limit
+			cursor += limit
 			var apiResponse GetBikeStnApiResponse
-			parseApiResponse(resp, &apiResponse)
+			parseErr := parseApiResponse(resp, &apiResponse)
+			if parseErr != nil {
+				return 0, []Station{}, parseErr
+			}
 			totalStations = append(totalStations, apiResponse.StationInfo.Row...)
 		}
 	}
@@ -60,15 +64,17 @@ func GetBikeStns() (int, []Station, error) {
 }
 
 func GetBikeStnStatus() ([]StationStatus, error) {
-	baseUrl := "http://openapi.seoul.go.kr:8088/%s/json/bikeList"
-	url := fmt.Sprintf(baseUrl, key) + fmt.Sprintf("/1/%d", limit)
+	baseURL := "http://openapi.seoul.go.kr:8088/%s/json/bikeList"
+	url := fmt.Sprintf(baseURL, key) + fmt.Sprintf("/1/%d", limit)
 	resp, err := http.Get(url)
 	if err != nil {
-		fmt.Println("Error getting station status:", err)
-		return []StationStatus{}, err
+		return []StationStatus{}, fmt.Errorf("cannot get station status: %w", err)
 	}
 	var apiResponse GetStnStatusApiResponse
-	parseApiResponse(resp, &apiResponse)
+	parseErr := parseApiResponse(resp, &apiResponse)
+	if parseErr != nil {
+		return []StationStatus{}, parseErr
+	}
 
 	statuses := apiResponse.RentBikeStatus.Row
 
@@ -77,19 +83,21 @@ func GetBikeStnStatus() ([]StationStatus, error) {
 	if apiResponse.RentBikeStatus.ListTotalCount == limit {
 		cursor := limit + 1
 		for {
-			url := fmt.Sprintf(baseUrl, key) + fmt.Sprintf("/%d/%d", cursor, cursor+limit-1)
+			url := fmt.Sprintf(baseURL, key) + fmt.Sprintf("/%d/%d", cursor, cursor+limit-1)
 			resp, err := http.Get(url)
 			if err != nil {
-				fmt.Println("Error getting station status:", err)
-				return []StationStatus{}, err
+				return []StationStatus{}, fmt.Errorf("cannot get station status: %w", err)
 			}
 			var apiResponse GetStnStatusApiResponse
-			parseApiResponse(resp, &apiResponse)
+			parseErr := parseApiResponse(resp, &apiResponse)
+			if parseErr != nil {
+				return []StationStatus{}, parseErr
+			}
 			statuses = append(statuses, apiResponse.RentBikeStatus.Row...)
 			if apiResponse.RentBikeStatus.ListTotalCount < limit {
 				break
 			}
-			cursor = cursor + limit
+			cursor += limit
 		}
 	}
 
