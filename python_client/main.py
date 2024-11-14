@@ -7,7 +7,7 @@ from datetime import datetime
 import grpc
 from redis.asyncio import Redis
 import socketio
-from aiohttp import web, ClientSession
+from aiohttp import web
 from protogen import bike_pb2_grpc, bike_pb2
 from google.protobuf import empty_pb2
 from google.protobuf.json_format import MessageToDict
@@ -139,32 +139,49 @@ async def __get_real_time_station_status(stub, socketio_emit: bool = True):
                     )
 
 
+# 종료 이벤트 생성
+shutdown_event = asyncio.Event()
+
+
 async def fetch_and_notify_bike_rent_status():
     """지속적으로 gRPC 스트림 데이터를 가져오는 함수"""
-    async with ClientSession() as _:
-        with grpc.insecure_channel(GRPC_SERVER_HOST) as channel:
-            stub = bike_pb2_grpc.BikeStub(channel)
-            while True:
+    with grpc.insecure_channel(GRPC_SERVER_HOST) as channel:
+        stub = bike_pb2_grpc.BikeStub(channel)
+        try:
+            while not shutdown_event.is_set():
                 try:
                     await __get_real_time_station_status(stub, socketio_emit=True)
                 except grpc.RpcError as e:
-                    print("gRPC error:", e)
+                    logger.warning("gRPC error:", e)
                 await asyncio.sleep(REQUEST_INTERVAL)  # 오류 발생 시에도 대기 후 재시도
+        finally:
+            logger.warning("Background loop exiting due to shutdown signal.")
 
 
 def start_background_event_loop():
     """서브 스레드에서 독립적인 이벤트 루프 생성 및 실행"""
     loop = asyncio.new_event_loop()  # 서브 스레드에서 새 이벤트 루프 생성
     asyncio.set_event_loop(loop)  # 현재 스레드의 이벤트 루프 설정
+    logger.info("Background event loop started...")
     loop.run_until_complete(fetch_and_notify_bike_rent_status())
+    loop.close()
 
 
 if __name__ == "__main__":
     # 서버 시작 전에 백그라운드 스레드를 시작
-    thread = threading.Thread(target=start_background_event_loop)
+    thread = threading.Thread(target=start_background_event_loop, daemon=True)
     thread.start()
 
     # aiohttp 웹 서버 실행
     app = web.Application(logger=logger)
     sio.attach(app)
-    web.run_app(app, handle_signals=True, shutdown_timeout=5)
+
+    async def cleanup(app):
+        logger.warning("Shutting down daemon thread...")
+        shutdown_event.set()
+        thread.join()  # 데몬 스레드가 안전하게 종료될 때까지 기다림
+
+    app.on_cleanup.append(cleanup)
+
+    logger.debug("Starting aiohttp server...")
+    web.run_app(app, shutdown_timeout=1)
