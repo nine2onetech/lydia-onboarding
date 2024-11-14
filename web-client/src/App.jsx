@@ -66,7 +66,7 @@ function App() {
       if (isLoading === true) {
         setIsLoading(false);
       }
-      message.type = 'bike_return';
+      message.type = 'bike_rent';
       setFeed((prevFeed) => [message, ...prevFeed]);
 
       setStations((prevStations) =>

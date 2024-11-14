@@ -164,7 +164,6 @@ def start_background_event_loop():
     asyncio.set_event_loop(loop)  # 현재 스레드의 이벤트 루프 설정
     logger.info("Background event loop started...")
     loop.run_until_complete(fetch_and_notify_bike_rent_status())
-    loop.close()
 
 
 if __name__ == "__main__":
@@ -180,8 +179,14 @@ if __name__ == "__main__":
         logger.warning("Shutting down daemon thread...")
         shutdown_event.set()
         thread.join()  # 데몬 스레드가 안전하게 종료될 때까지 기다림
+        logger.warning("Daemon thread has been shut down.")
 
     app.on_cleanup.append(cleanup)
+
+    async def on_shutdown(app):
+        logger.warning("Aiohttp server has been shut down.")
+
+    app.on_shutdown.append(on_shutdown)
 
     logger.debug("Starting aiohttp server...")
     web.run_app(app, shutdown_timeout=1)
